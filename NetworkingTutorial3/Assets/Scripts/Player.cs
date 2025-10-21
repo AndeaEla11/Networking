@@ -1,12 +1,17 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Player : MonoBehaviour
 {
     public float movementSpeed = 10f;
-
     Rigidbody rigidbody;
+
+    [HideInInspector]
+    public int health = 100;
+    public Slider healthBar;
+
 
     public float fireRate = 0.75f;
     public GameObject bulletPrefab;
@@ -15,13 +20,13 @@ public class Player : MonoBehaviour
     public GameObject bulletFiringEffect;
     public AudioClip playerShootingAudio;
 
-    // Start is called before the first frame update
+    
     void Start()
     {
         rigidbody = GetComponent<Rigidbody>();
     }
 
-    // Update is called once per frame
+    
     void FixedUpdate()
     {
         Move();
@@ -44,6 +49,28 @@ public class Player : MonoBehaviour
         rigidbody.MovePosition(rigidbody.position + movementDir);
     }
 
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (collision.gameObject.CompareTag("Bullet"))
+        {
+            BulletController bullet = collision.gameObject.GetComponent<BulletController>();
+            TakeDamage(bullet.damage);
+        }
+    }
+
+    void TakeDamage(int damage)
+    {
+        health -= damage;
+        healthBar.value = health;
+        if (health <= 0)
+            PlayerDied();
+
+    }
+
+    void PlayerDied()
+    {
+        gameObject.SetActive(false);
+    }
 
     void Fire() 
     {

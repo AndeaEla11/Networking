@@ -101,6 +101,8 @@ public class MultiplayerLobby : MonoBehaviourPunCallbacks
     {
         Debug.Log("Room as been joined!");
         ActivatePanel("CreateRoom"); 
+
+        DestroyChildren(insideRoomPlayerList);
     }
 
     public void DisconnectButtonClicked()
@@ -112,5 +114,14 @@ public class MultiplayerLobby : MonoBehaviourPunCallbacks
     {
         Debug.Log("Disconnected from the master server!");
         ActivatePanel("Login"); 
+    }
+
+    public void DestroyChildren(Transform parent)
+    {
+        foreach(Transform child in parent)
+        {
+            Destroy(child.gameObject);
+        }
+
     }
 }

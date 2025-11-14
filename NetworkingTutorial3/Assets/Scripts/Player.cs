@@ -6,7 +6,7 @@ using UnityEngine.UI;
 public class Player : MonoBehaviour
 {
     public float movementSpeed = 10f;
-    Rigidbody rigidbody;
+    public new Rigidbody rigidbody;
 
     [HideInInspector]
     public int health = 100;

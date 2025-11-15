@@ -2,7 +2,9 @@
 using UnityEngine;
 using Photon.Pun;
 using Photon.Realtime;
-using UnityEngine.UI; 
+using UnityEngine.UI;
+using System.Collections.Generic;
+using Unity.VisualScripting;
 
 public class MultiplayerLobby : MonoBehaviourPunCallbacks
 {
@@ -18,14 +20,21 @@ public class MultiplayerLobby : MonoBehaviourPunCallbacks
     public InputField playerNameInput;
 
     public GameObject textPrefab;
-    public Transform insideRoomPlayerList; 
+    public Transform insideRoomPlayerList;
+
+    public Transform listRoomPanel;
+    public GameObject roomEntryPrefab;
+    public Transform listRoomPanelContent; 
 
     string playerName;
 
+    Dictionary<string, RoomInfo> cachedRoomList; 
 
     private void Start()
     {
         playerNameInput.text = playerName = string.Format("Player{0}", Random.Range(1, 1000000)); 
+
+        cachedRoomList = new Dictionary<string, RoomInfo>(); 
     }
     public void ActivatePanel(string panelName)
     {
@@ -124,4 +133,58 @@ public class MultiplayerLobby : MonoBehaviourPunCallbacks
         }
 
     }
+
+    public void ListRoomsClicked()
+    {
+        PhotonNetwork.JoinLobby(); 
+    }
+
+    public override void OnJoinedLobby()
+    {
+        Debug.Log("Joined Lobby!");
+        ActivatePanel("ListRooms"); 
+    }
+
+    public override void OnRoomListUpdate(List<RoomInfo> roomList)
+    {
+        Debug.Log("Room Update: " + roomList.Count);
+
+        DestroyChildren(listRoomPanelContent); 
+
+        UpdateCachedRoomList(roomList);
+
+        foreach (var room in cachedRoomList)
+        {
+            var newRoomEntry = Instantiate(roomEntryPrefab, listRoomPanelContent);
+            var newRoomEntryScript = newRoomEntry.GetComponent<RoomEntry>();
+            newRoomEntryScript.roomName = room.Key;
+            newRoomEntryScript.roomText.text = string.Format("[{0} - ({1}/{2})]",room.Key, room.Value.PlayerCount, room.Value.MaxPlayers); 
+        }
+    }
+
+
+    public void LeaveLobbyClicked()
+    {
+        PhotonNetwork.LeaveLobby();
+    }
+
+    public override void OnLeftLobby()
+    {
+        Debug.Log("Left Lobby!");
+        DestroyChildren(listRoomPanelContent);
+        cachedRoomList.Clear(); 
+        ActivatePanel("Selection"); 
+    }
+
+    public void UpdateCachedRoomList(List<RoomInfo> roomList)
+    {
+        foreach (var room in roomList) 
+        { 
+            if (!room.IsOpen || !room.IsVisible || room.RemovedFromList)
+                cachedRoomList.Remove(room.Name);
+            else
+                cachedRoomList[room.Name] = room;
+        }
+    }
+
 }

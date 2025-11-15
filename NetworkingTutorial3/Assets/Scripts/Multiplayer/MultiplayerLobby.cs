@@ -18,7 +18,7 @@ public class MultiplayerLobby : MonoBehaviourPunCallbacks
     public InputField roomNameInput;
 
     public InputField playerNameInput;
-
+    public GameObject startGameButton;
     public GameObject textPrefab;
     public Transform insideRoomPlayerList;
 
@@ -33,16 +33,16 @@ public class MultiplayerLobby : MonoBehaviourPunCallbacks
     private void Start()
     {
         playerNameInput.text = playerName = string.Format("Player{0}", Random.Range(1, 1000000)); 
-
         cachedRoomList = new Dictionary<string, RoomInfo>(); 
+        PhotonNetwork.AutomaticallySyncScene = true;
     }
     public void ActivatePanel(string panelName)
     {
         LoginPanel.gameObject.SetActive(false);
         SelectionPanel.gameObject.SetActive(false);
         CreateRoomPanel.gameObject.SetActive(false);
-        InsideRoomPanel.gameObject.SetActive(false);
-        LoginPanel.gameObject.SetActive(false);
+        InsideRoomPanel.gameObject.SetActive(false); 
+        ListRoomsPanel.gameObject.SetActive(false);
 
         if (panelName == LoginPanel.gameObject.name)
             LoginPanel.gameObject.SetActive(true);
@@ -93,11 +93,13 @@ public class MultiplayerLobby : MonoBehaviourPunCallbacks
     {
         Debug.Log("Room has been joined!");
         ActivatePanel("InsideRoom");
+        startGameButton.SetActive(PhotonNetwork.IsMasterClient);
 
         foreach (var player in PhotonNetwork.PlayerList)
         {
             var playerListEntry = Instantiate(textPrefab, insideRoomPlayerList);
             playerListEntry.GetComponent<Text>().text = player.NickName;
+            playerListEntry.name = player.NickName; 
         }
     }
 
@@ -172,6 +174,7 @@ public class MultiplayerLobby : MonoBehaviourPunCallbacks
     {
         Debug.Log("Left Lobby!");
         DestroyChildren(listRoomPanelContent);
+        DestroyChildren(insideRoomPlayerList);
         cachedRoomList.Clear(); 
         ActivatePanel("Selection"); 
     }
@@ -185,6 +188,55 @@ public class MultiplayerLobby : MonoBehaviourPunCallbacks
             else
                 cachedRoomList[room.Name] = room;
         }
+    }
+
+    public void OnJoinRandomRoomClicked()
+    {
+        PhotonNetwork.JoinRandomRoom(); 
+    }
+
+    public override void OnPlayerEnteredRoom(Photon.Realtime.Player newPlayer)
+    {
+        Debug.Log("A Player joined the Room");
+        var playerListEntry = Instantiate(textPrefab, insideRoomPlayerList);
+        playerListEntry.GetComponent<Text>().text = newPlayer.NickName;
+    }
+
+    public override void OnPlayerLeftRoom(Photon.Realtime.Player otherPlayer)
+    {
+        Debug.Log("A Player left the Room"); 
+        
+
+        foreach(Transform child in insideRoomPlayerList)
+        {
+            if(child.name == otherPlayer.NickName)
+            {
+                Destroy(child.gameObject);
+                break;
+            }
+        }
+    }
+
+    public override void OnJoinRoomFailed(short returnCode, string message)
+    {
+        Debug.Log("Failed to join Room. " +message);
+    }
+
+    public override void OnJoinRandomFailed(short returnCode, string message)
+    {
+        Debug.Log("Failed to join random Room. " + message);
+    }
+
+    public override void OnMasterClientSwitched(Photon.Realtime.Player newMasterClient)
+    {
+        startGameButton.SetActive(PhotonNetwork.IsMasterClient);
+    }
+
+    public void StartGameClicked()
+    {
+        PhotonNetwork.CurrentRoom.IsOpen = false;
+        PhotonNetwork.CurrentRoom.IsVisible = false;
+        PhotonNetwork.LoadLevel("Multiplayer"); 
     }
 
 }

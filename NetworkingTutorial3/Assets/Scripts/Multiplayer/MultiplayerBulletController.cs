@@ -5,6 +5,7 @@ using Photon.Pun;
 using Photon.Realtime;
 using Photon.Pun.UtilityScripts; 
 
+
 public class MultiplayerBulletController : MonoBehaviourPunCallbacks
 {
 
@@ -18,7 +19,7 @@ public class MultiplayerBulletController : MonoBehaviourPunCallbacks
     [HideInInspector]
     public Photon.Realtime.Player owner; 
 
-    // Start is called before the first frame update
+
     void Awake()
     {
         rigidBody = GetComponent<Rigidbody>();
@@ -39,8 +40,8 @@ public class MultiplayerBulletController : MonoBehaviourPunCallbacks
 
     private void OnCollisionEnter(Collision collision)
     {
-        AudioManager.Instance.Play3D(BulletHitAudio, transform.position);
 
+        AudioManager.Instance.Play3D(BulletHitAudio, transform.position);
         VFXManager.Instance.PlayVFX(bulletImpactEffect, transform.position);
 
         Destroy(gameObject);

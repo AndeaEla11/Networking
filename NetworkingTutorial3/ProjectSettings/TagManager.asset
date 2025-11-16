@@ -6,16 +6,18 @@ TagManager:
   tags:
   - Bullet
   - Multiplayer Player
+  - Ground
+  - Rock
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - Ground
   - Water
   - UI
-  - 
-  - 
-  - 
+  - Rock
+  - Player
+  - Bullet
   - 
   - 
   - 

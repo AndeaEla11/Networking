@@ -13,7 +13,6 @@ public class MultiplayerBulletController : MonoBehaviourPunCallbacks
     public float bulletSpeed = 15f;
     public AudioClip BulletHitAudio;
     public GameObject bulletImpactEffect;
-
     public int damage = 10;
 
     [HideInInspector]

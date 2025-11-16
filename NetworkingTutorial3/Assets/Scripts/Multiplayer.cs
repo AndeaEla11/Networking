@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using Photon.Pun;
+using Photon.Pun.UtilityScripts;
 
-public class Multiplayer : MonoBehaviour
+public class Multiplayer : MonoBehaviour, IPunObservable
 {
     public float movementSpeed = 10f;
     public new Rigidbody rigidbody;
@@ -37,7 +38,7 @@ public class Multiplayer : MonoBehaviour
 
         Move();
         if (Input.GetKey(KeyCode.Space))
-            Fire();
+            photonView.RPC("Fire", RpcTarget.AllViaServer);
     }
 
     void Move()
@@ -59,25 +60,29 @@ public class Multiplayer : MonoBehaviour
     {
         if (collision.gameObject.CompareTag("Bullet"))
         {
-            BulletController bullet = collision.gameObject.GetComponent<BulletController>();
-            TakeDamage(bullet.damage);
+            MultiplayerBulletController bullet = collision.gameObject.GetComponent<MultiplayerBulletController>();
+            TakeDamage(bullet);
         }
     }
 
-    void TakeDamage(int damage)
+    void TakeDamage(MultiplayerBulletController bullet)
     {
-        health -= damage;
+        health -= bullet.damage;
         healthBar.value = health;
         if (health <= 0)
+        {
+            bullet.owner.AddScore(1); 
             PlayerDied();
-
+        }
     }
 
     void PlayerDied()
     {
-        gameObject.SetActive(false);
+        health = 100;
+        healthBar.value = health;
     }
 
+    [PunRPC]
     void Fire() 
     {
         if (Time.time > nextFire) 
@@ -85,13 +90,24 @@ public class Multiplayer : MonoBehaviour
             nextFire = Time.time + fireRate;
 
             GameObject bullet = Instantiate(bulletPrefab, bulletPosition.position, Quaternion.identity);
-
-            bullet.GetComponent<BulletController>()?.InitializeBullet(transform.rotation * Vector3.forward);
+            bullet.GetComponent<MultiplayerBulletController>()?.InitializeBullet(transform.rotation * Vector3.forward, photonView.Owner);
 
             AudioManager.Instance.Play3D(playerShootingAudio, transform.position);
-
             VFXManager.Instance.PlayVFX(bulletFiringEffect, bulletPosition.position);
 
+        }
+    }
+
+    public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
+    {
+        if (stream.IsWriting)
+        {
+            stream.SendNext(health);
+        }
+        else
+        {
+            health = (int)stream.ReceiveNext();
+            healthBar.value = health;
         }
     }
 

@@ -14,7 +14,7 @@ public class MultiplayerLevelManager : MonoBehaviourPunCallbacks
 
     void Start()
     {
-        PhotonNetwork.Instantiate("Multiplayer Player", Vector3.zero, Quaternion.identity); 
+        PhotonNetwork.Instantiate("Multiplayer Player", new Vector3(0,1,0), Quaternion.identity); 
     }
 
     public override void OnPlayerPropertiesUpdate(Photon.Realtime.Player targetPlayer, Hashtable changedProps)

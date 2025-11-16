@@ -13,10 +13,6 @@ public class Multiplayer : MonoBehaviour, IPunObservable
     public int health = 100;
     public Slider healthBar;
 
-    Rigidbody rb;
-
-    PhotonView photonView;
-
     public float fireRate = 0.75f;
     public GameObject bulletPrefab;
     public Transform bulletPosition;
@@ -24,7 +20,10 @@ public class Multiplayer : MonoBehaviour, IPunObservable
     public GameObject bulletFiringEffect;
     public AudioClip playerShootingAudio;
 
-    
+
+    Rigidbody rb;
+    PhotonView photonView;
+
     void Start()
     {
         rb = GetComponent<Rigidbody>();
@@ -62,6 +61,7 @@ public class Multiplayer : MonoBehaviour, IPunObservable
         if (collision.gameObject.CompareTag("Bullet"))
         {
             MultiplayerBulletController bullet = collision.gameObject.GetComponent<MultiplayerBulletController>();
+
             TakeDamage(bullet);
 
         }

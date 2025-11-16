@@ -19,7 +19,6 @@ public class MultiplayerBulletController : MonoBehaviourPunCallbacks
     [HideInInspector]
     public Photon.Realtime.Player owner; 
 
-
     void Awake()
     {
         rigidBody = GetComponent<Rigidbody>();

@@ -6,7 +6,7 @@ using UnityEngine.UI;
 public class Player : MonoBehaviour
 {
     public float movementSpeed = 10f;
-    public new Rigidbody rigidbody;
+    Rigidbody rb;
 
     [HideInInspector]
     public int health = 100;
@@ -23,7 +23,7 @@ public class Player : MonoBehaviour
     
     void Start()
     {
-        rigidbody = GetComponent<Rigidbody>();
+        rb = GetComponent<Rigidbody>();
     }
 
     
@@ -46,7 +46,7 @@ public class Player : MonoBehaviour
         transform.rotation = rotation;
 
         Vector3 movementDir = transform.forward * Time.deltaTime * movementSpeed;
-        rigidbody.MovePosition(rigidbody.position + movementDir);
+        rb.MovePosition(rb.position + movementDir);
     }
 
     private void OnCollisionEnter(Collision collision)
@@ -79,11 +79,9 @@ public class Player : MonoBehaviour
             nextFire = Time.time + fireRate;
 
             GameObject bullet = Instantiate(bulletPrefab, bulletPosition.position, Quaternion.identity);
-
             bullet.GetComponent<BulletController>()?.InitializeBullet(transform.rotation * Vector3.forward);
 
             AudioManager.Instance.Play3D(playerShootingAudio, transform.position);
-
             VFXManager.Instance.PlayVFX(bulletFiringEffect, bulletPosition.position);
 
         }

@@ -8,11 +8,12 @@ using Photon.Pun.UtilityScripts;
 public class Multiplayer : MonoBehaviour, IPunObservable
 {
     public float movementSpeed = 10f;
-    public new Rigidbody rigidbody;
 
     [HideInInspector]
     public int health = 100;
     public Slider healthBar;
+
+    Rigidbody rb;
 
     PhotonView photonView;
 
@@ -26,7 +27,7 @@ public class Multiplayer : MonoBehaviour, IPunObservable
     
     void Start()
     {
-        rigidbody = GetComponent<Rigidbody>();
+        rb = GetComponent<Rigidbody>();
         photonView = GetComponent<PhotonView>();
     }
 
@@ -53,7 +54,7 @@ public class Multiplayer : MonoBehaviour, IPunObservable
         transform.rotation = rotation;
 
         Vector3 movementDir = transform.forward * Time.deltaTime * movementSpeed;
-        rigidbody.MovePosition(rigidbody.position + movementDir);
+        rb.MovePosition(rb.position + movementDir);
     }
 
     private void OnCollisionEnter(Collision collision)
@@ -62,6 +63,7 @@ public class Multiplayer : MonoBehaviour, IPunObservable
         {
             MultiplayerBulletController bullet = collision.gameObject.GetComponent<MultiplayerBulletController>();
             TakeDamage(bullet);
+
         }
     }
 

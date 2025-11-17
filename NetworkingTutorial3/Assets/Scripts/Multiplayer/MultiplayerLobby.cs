@@ -8,42 +8,52 @@ using Unity.VisualScripting;
 
 public class MultiplayerLobby : MonoBehaviourPunCallbacks
 {
-
+    
     public Transform LoginPanel;
     public Transform SelectionPanel;
     public Transform CreateRoomPanel;
     public Transform InsideRoomPanel;
     public Transform ListRoomsPanel;
 
+    
     public InputField roomNameInput;
 
+    
     public InputField playerNameInput;
+
+    
     public GameObject startGameButton;
     public GameObject textPrefab;
     public Transform insideRoomPlayerList;
 
+    
     public Transform listRoomPanel;
     public GameObject roomEntryPrefab;
-    public Transform listRoomPanelContent; 
+    public Transform listRoomPanelContent;
 
     string playerName;
+    Dictionary<string, RoomInfo> cachedRoomList;
 
-    Dictionary<string, RoomInfo> cachedRoomList; 
-
-    private void Start()
+    void Start()
     {
-        playerNameInput.text = playerName = string.Format("Player{0}", Random.Range(1, 1000000)); 
-        cachedRoomList = new Dictionary<string, RoomInfo>(); 
+        playerNameInput.text = playerName = string.Format("Player{0}", Random.Range(1, 1000000));
+        playerNameInput.text = playerName;
+
+        cachedRoomList = new Dictionary<string, RoomInfo>();
+
         PhotonNetwork.AutomaticallySyncScene = true;
     }
+
     public void ActivatePanel(string panelName)
     {
+        
         LoginPanel.gameObject.SetActive(false);
         SelectionPanel.gameObject.SetActive(false);
         CreateRoomPanel.gameObject.SetActive(false);
-        InsideRoomPanel.gameObject.SetActive(false); 
+        InsideRoomPanel.gameObject.SetActive(false);
         ListRoomsPanel.gameObject.SetActive(false);
 
+        
         if (panelName == LoginPanel.gameObject.name)
             LoginPanel.gameObject.SetActive(true);
         else if (panelName == SelectionPanel.gameObject.name)
@@ -52,13 +62,14 @@ public class MultiplayerLobby : MonoBehaviourPunCallbacks
             CreateRoomPanel.gameObject.SetActive(true);
         else if (panelName == InsideRoomPanel.gameObject.name)
             InsideRoomPanel.gameObject.SetActive(true);
-        else if (panelName ==  ListRoomsPanel.gameObject.name)
-            ListRoomsPanel.gameObject.SetActive (true);
+        else if (panelName == ListRoomsPanel.gameObject.name)
+            ListRoomsPanel.gameObject.SetActive(true);
     }
 
     public void LoginButtonClicked()
     {
-        PhotonNetwork.LocalPlayer.NickName = playerName = playerNameInput.text;
+        playerName = playerNameInput.text;
+        PhotonNetwork.LocalPlayer.NickName = playerName;
 
         PhotonNetwork.ConnectUsingSettings();
     }
@@ -71,22 +82,23 @@ public class MultiplayerLobby : MonoBehaviourPunCallbacks
 
     public void CreateARoom()
     {
-        RoomOptions roomOptions = new RoomOptions();
-        roomOptions.MaxPlayers = 4;
-        roomOptions.IsVisible = true; 
+        var roomOptions = new RoomOptions
+        {
+            MaxPlayers = 4,
+            IsVisible = true
+        };
 
         PhotonNetwork.CreateRoom(roomNameInput.text, roomOptions);
     }
 
     public override void OnCreatedRoom()
     {
-        Debug.Log("Room has been created!"); 
-            
+        Debug.Log("Room has been created!");
     }
 
     public override void OnCreateRoomFailed(short returnCode, string message)
     {
-        Debug.Log("Failed to create room!");
+        Debug.Log($"Failed to create room! {message}");
     }
 
     public override void OnJoinedRoom()
@@ -95,64 +107,61 @@ public class MultiplayerLobby : MonoBehaviourPunCallbacks
         ActivatePanel("InsideRoom");
         startGameButton.SetActive(PhotonNetwork.IsMasterClient);
 
+        DestroyChildren(insideRoomPlayerList);
+
         foreach (var player in PhotonNetwork.PlayerList)
         {
-            var playerListEntry = Instantiate(textPrefab, insideRoomPlayerList);
-            playerListEntry.GetComponent<Text>().text = player.NickName;
-            playerListEntry.name = player.NickName; 
+            CreatePlayerListEntry(player.NickName);
         }
     }
 
     public void LeaveRoom()
     {
-        PhotonNetwork.LeaveRoom(); 
+        PhotonNetwork.LeaveRoom();
     }
 
     public override void OnLeftRoom()
     {
-        Debug.Log("Room as been joined!");
-        ActivatePanel("CreateRoom"); 
-
+        Debug.Log("Room has been left!");
+        ActivatePanel("CreateRoom");
         DestroyChildren(insideRoomPlayerList);
     }
 
     public void DisconnectButtonClicked()
     {
-        PhotonNetwork.Disconnect(); 
+        PhotonNetwork.Disconnect();
     }
 
     public override void OnDisconnected(DisconnectCause cause)
     {
         Debug.Log("Disconnected from the master server!");
-        ActivatePanel("Login"); 
+        ActivatePanel("Login");
     }
 
-    public void DestroyChildren(Transform parent)
+    void DestroyChildren(Transform parent)
     {
-        foreach(Transform child in parent)
+        foreach (Transform child in parent)
         {
             Destroy(child.gameObject);
         }
-
     }
 
     public void ListRoomsClicked()
     {
-        PhotonNetwork.JoinLobby(); 
+        PhotonNetwork.JoinLobby();
     }
 
     public override void OnJoinedLobby()
     {
         Debug.Log("Joined Lobby!");
-        ActivatePanel("ListRooms"); 
+        ActivatePanel("ListRooms");
     }
 
     public override void OnRoomListUpdate(List<RoomInfo> roomList)
     {
         Debug.Log("Room Update: " + roomList.Count);
 
-        DestroyChildren(listRoomPanelContent); 
-
+        DestroyChildren(listRoomPanelContent);
         UpdateCachedRoomList(roomList);
 
         foreach (var room in cachedRoomList)
@@ -160,10 +169,10 @@ public class MultiplayerLobby : MonoBehaviourPunCallbacks
             var newRoomEntry = Instantiate(roomEntryPrefab, listRoomPanelContent);
             var newRoomEntryScript = newRoomEntry.GetComponent<RoomEntry>();
             newRoomEntryScript.roomName = room.Key;
-            newRoomEntryScript.roomText.text = string.Format("[{0} - ({1}/{2})]",room.Key, room.Value.PlayerCount, room.Value.MaxPlayers); 
+            newRoomEntryScript.roomText.text =
+                $"[{room.Key} - ({room.Value.PlayerCount}/{room.Value.MaxPlayers})]";
         }
     }
-
 
     public void LeaveLobbyClicked()
     {
@@ -175,14 +184,14 @@ public class MultiplayerLobby : MonoBehaviourPunCallbacks
         Debug.Log("Left Lobby!");
         DestroyChildren(listRoomPanelContent);
         DestroyChildren(insideRoomPlayerList);
-        cachedRoomList.Clear(); 
-        ActivatePanel("Selection"); 
+        cachedRoomList.Clear();
+        ActivatePanel("Selection");
     }
 
-    public void UpdateCachedRoomList(List<RoomInfo> roomList)
+    void UpdateCachedRoomList(List<RoomInfo> roomList)
     {
-        foreach (var room in roomList) 
-        { 
+        foreach (var room in roomList)
+        {
             if (!room.IsOpen || !room.IsVisible || room.RemovedFromList)
                 cachedRoomList.Remove(room.Name);
             else
@@ -192,24 +201,22 @@ public class MultiplayerLobby : MonoBehaviourPunCallbacks
 
     public void OnJoinRandomRoomClicked()
     {
-        PhotonNetwork.JoinRandomRoom(); 
+        PhotonNetwork.JoinRandomRoom();
     }
 
     public override void OnPlayerEnteredRoom(Photon.Realtime.Player newPlayer)
     {
         Debug.Log("A Player joined the Room");
-        var playerListEntry = Instantiate(textPrefab, insideRoomPlayerList);
-        playerListEntry.GetComponent<Text>().text = newPlayer.NickName;
+        CreatePlayerListEntry(newPlayer.NickName);
     }
 
     public override void OnPlayerLeftRoom(Photon.Realtime.Player otherPlayer)
     {
-        Debug.Log("A Player left the Room"); 
-        
+        Debug.Log("A Player left the Room");
 
-        foreach(Transform child in insideRoomPlayerList)
+        foreach (Transform child in insideRoomPlayerList)
         {
-            if(child.name == otherPlayer.NickName)
+            if (child.name == otherPlayer.NickName)
             {
                 Destroy(child.gameObject);
                 break;
@@ -219,7 +226,7 @@ public class MultiplayerLobby : MonoBehaviourPunCallbacks
 
     public override void OnJoinRoomFailed(short returnCode, string message)
     {
-        Debug.Log("Failed to join Room. " +message);
+        Debug.Log("Failed to join Room. " + message);
     }
 
     public override void OnJoinRandomFailed(short returnCode, string message)
@@ -235,13 +242,19 @@ public class MultiplayerLobby : MonoBehaviourPunCallbacks
     public void StartGameClicked()
     {
         if (PhotonNetwork.CurrentRoom.PlayerCount < 2)
-        {
             return;
-        }
 
         PhotonNetwork.CurrentRoom.IsOpen = false;
         PhotonNetwork.CurrentRoom.IsVisible = false;
-        PhotonNetwork.LoadLevel("Multiplayer"); 
+        PhotonNetwork.LoadLevel("Multiplayer");
     }
 
+
+    void CreatePlayerListEntry(string nickName)
+    {
+        var playerListEntry = Instantiate(textPrefab, insideRoomPlayerList);
+        var text = playerListEntry.GetComponent<Text>();
+        text.text = nickName;
+        playerListEntry.name = nickName;
+    }
 }

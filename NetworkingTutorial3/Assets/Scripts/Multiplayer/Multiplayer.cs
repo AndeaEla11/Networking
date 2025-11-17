@@ -16,10 +16,10 @@ public class Multiplayer : MonoBehaviour, IPunObservable
     public float fireRate = 0.75f;
     public GameObject bulletPrefab;
     public Transform bulletPosition;
-    float nextFire;
     public GameObject bulletFiringEffect;
     public AudioClip playerShootingAudio;
 
+    float nextFire;
 
     Rigidbody rb;
     PhotonView photonView;
@@ -66,9 +66,15 @@ public class Multiplayer : MonoBehaviour, IPunObservable
 
     private void OnCollisionEnter(Collision collision)
     {
+        if (!photonView.IsMine)
+            return;
+
         if (collision.gameObject.CompareTag("Bullet"))
         {
             MultiplayerBulletController bullet = collision.gameObject.GetComponent<MultiplayerBulletController>();
+
+            if (bullet.owner == photonView.Owner)
+                return;
 
             TakeDamage(bullet);
 
@@ -100,8 +106,20 @@ public class Multiplayer : MonoBehaviour, IPunObservable
             nextFire = Time.time + fireRate;
 
             GameObject bullet = Instantiate(bulletPrefab, bulletPosition.position, Quaternion.identity);
-            bullet.GetComponent<MultiplayerBulletController>()?.InitializeBullet(transform.rotation * Vector3.forward, photonView.Owner);
+            var bulletCtrl = bullet.GetComponent<MultiplayerBulletController>();
+            bulletCtrl?.InitializeBullet(transform.rotation * Vector3.forward, photonView.Owner);
 
+            
+            if (bullet.TryGetComponent(out Collider bulletCol))
+            {
+                
+                var playerColliders = GetComponentsInChildren<Collider>();
+
+                foreach (var col in playerColliders)
+                {
+                    Physics.IgnoreCollision(bulletCol, col);
+                }
+            }
             AudioManager.Instance.Play3D(playerShootingAudio, transform.position);
             VFXManager.Instance.PlayVFX(bulletFiringEffect, bulletPosition.position);
 

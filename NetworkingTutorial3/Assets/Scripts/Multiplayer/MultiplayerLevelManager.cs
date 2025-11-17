@@ -11,11 +11,13 @@ public class MultiplayerLevelManager : MonoBehaviourPunCallbacks
 {
     public int maxKills = 3;
     public GameObject gameOverPopup;
-    public Text winnerText; 
+    public Text winnerText;
+    public Text customMessageText;
 
     void Start()
     {
         PhotonNetwork.Instantiate("Multiplayer Player", new Vector3(0,1,0), Quaternion.identity); 
+        
     }
 
     public override void OnPlayerPropertiesUpdate(Photon.Realtime.Player targetPlayer, Hashtable changedProps)
@@ -24,7 +26,18 @@ public class MultiplayerLevelManager : MonoBehaviourPunCallbacks
         {
             winnerText.text = targetPlayer.NickName;
             gameOverPopup.SetActive(true);
-            StorePersonalBest(); 
+
+            if (PhotonNetwork.LocalPlayer == targetPlayer)
+            {
+                customMessageText.text = "You won!";
+            }
+            else
+            {
+                customMessageText.text = "You lost!";
+            }
+
+            StorePersonalBest();
+            
         }
     }
 

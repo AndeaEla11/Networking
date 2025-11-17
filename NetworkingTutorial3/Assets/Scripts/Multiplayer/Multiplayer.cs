@@ -24,10 +24,18 @@ public class Multiplayer : MonoBehaviour, IPunObservable
     Rigidbody rb;
     PhotonView photonView;
 
+    public static Multiplayer localPlayer;
+
     void Start()
     {
         rb = GetComponent<Rigidbody>();
         photonView = GetComponent<PhotonView>();
+
+        if (photonView.IsMine)
+        {
+            CameraTracking cam = Camera.main.GetComponent<CameraTracking>();
+            cam.SetPlayer(transform);
+        }
     }
 
     

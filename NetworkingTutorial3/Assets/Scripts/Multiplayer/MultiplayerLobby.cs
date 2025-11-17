@@ -234,6 +234,11 @@ public class MultiplayerLobby : MonoBehaviourPunCallbacks
 
     public void StartGameClicked()
     {
+        if (PhotonNetwork.CurrentRoom.PlayerCount < 2)
+        {
+            return;
+        }
+
         PhotonNetwork.CurrentRoom.IsOpen = false;
         PhotonNetwork.CurrentRoom.IsVisible = false;
         PhotonNetwork.LoadLevel("Multiplayer"); 

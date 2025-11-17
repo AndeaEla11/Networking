@@ -5,6 +5,7 @@ using Photon.Pun.UtilityScripts;
 using Photon.Realtime;
 using UnityEngine.SceneManagement;
 using ExitGames.Client.Photon;
+using System; 
 
 public class MultiplayerLevelManager : MonoBehaviourPunCallbacks 
 {
@@ -23,6 +24,24 @@ public class MultiplayerLevelManager : MonoBehaviourPunCallbacks
         {
             winnerText.text = targetPlayer.NickName;
             gameOverPopup.SetActive(true);
+            StorePersonalBest(); 
+        }
+    }
+
+    void StorePersonalBest()
+    {
+        int currentScore = PhotonNetwork.LocalPlayer.GetScore();
+        PlayerData playerData = GameManager.instance.playerData;
+
+        if (currentScore > playerData.bestScore)
+        {
+            playerData.username = PhotonNetwork.LocalPlayer.NickName;
+            playerData.bestScore = currentScore;
+            playerData.bestScoreDate = DateTime.UtcNow.ToString();
+            playerData.totalPlayersInGame = PhotonNetwork.CurrentRoom.PlayerCount;
+            playerData.roomName = PhotonNetwork.CurrentRoom.Name;
+
+            GameManager.instance.SavePlayerData(); 
         }
     }
 

@@ -34,15 +34,16 @@ public class MultiplayerLobby : MonoBehaviourPunCallbacks
     string playerName;
     Dictionary<string, RoomInfo> cachedRoomList;
 
+
     void Start()
     {
         playerNameInput.text = playerName = string.Format("Player{0}", Random.Range(1, 1000000));
         playerNameInput.text = playerName;
 
         cachedRoomList = new Dictionary<string, RoomInfo>();
-
         PhotonNetwork.AutomaticallySyncScene = true;
     }
+
 
     public void ActivatePanel(string panelName)
     {

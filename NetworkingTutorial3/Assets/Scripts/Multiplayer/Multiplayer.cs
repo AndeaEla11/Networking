@@ -26,19 +26,42 @@ public class Multiplayer : MonoBehaviour, IPunObservable
 
     public static Multiplayer localPlayer;
 
-    void Start()
+    public GameObject nameUIPrefab;
+
+
+    void Awake()
     {
         rb = GetComponent<Rigidbody>();
         photonView = GetComponent<PhotonView>();
+    }
+
+    void Start()
+    {
 
         if (photonView.IsMine)
         {
-            CameraTracking cam = Camera.main.GetComponent<CameraTracking>();
+            var cam = Camera.main.GetComponent<CameraTracking>();
             cam.SetPlayer(transform);
+        }
+
+        CreateNameUI();
+    }
+
+    void CreateNameUI()
+    {
+        if (nameUIPrefab == null)
+            return;
+
+        GameObject ui = Instantiate(nameUIPrefab);
+
+        var uiScript = ui.GetComponent<PlayerNameUI>();
+        if (uiScript != null)
+        {
+            uiScript.nameText.text = photonView.Owner.NickName;
+            uiScript.target = transform;
         }
     }
 
-    
     void FixedUpdate()
     {
         if(!photonView.IsMine)
@@ -66,18 +89,20 @@ public class Multiplayer : MonoBehaviour, IPunObservable
 
     private void OnCollisionEnter(Collision collision)
     {
+
+        if (photonView == null)
+            return; 
+
         if (!photonView.IsMine)
             return;
 
         if (collision.gameObject.CompareTag("Bullet"))
         {
-            MultiplayerBulletController bullet = collision.gameObject.GetComponent<MultiplayerBulletController>();
-
-            if (bullet.owner == photonView.Owner)
+            var bullet = collision.gameObject.GetComponent<MultiplayerBulletController>();
+            if (bullet == null)
                 return;
 
             TakeDamage(bullet);
-
         }
     }
 
@@ -87,7 +112,9 @@ public class Multiplayer : MonoBehaviour, IPunObservable
         healthBar.value = health;
         if (health <= 0)
         {
-            bullet.owner.AddScore(1); 
+            if (bullet.owner != null)
+                bullet.owner.AddScore(1);
+
             PlayerDied();
         }
     }
@@ -99,31 +126,29 @@ public class Multiplayer : MonoBehaviour, IPunObservable
     }
 
     [PunRPC]
-    void Fire() 
+    void Fire()
     {
-        if (Time.time > nextFire) 
+        if (Time.time <= nextFire)
+            return;
+
+        nextFire = Time.time + fireRate;
+
+        GameObject bullet = Instantiate(bulletPrefab, bulletPosition.position, Quaternion.identity);
+
+        var bulletCtrl = bullet.GetComponent<MultiplayerBulletController>();
+        bulletCtrl?.InitializeBullet(transform.rotation * Vector3.forward, photonView.Owner);
+
+        if (bullet.TryGetComponent(out Collider bulletCol))
         {
-            nextFire = Time.time + fireRate;
-
-            GameObject bullet = Instantiate(bulletPrefab, bulletPosition.position, Quaternion.identity);
-            var bulletCtrl = bullet.GetComponent<MultiplayerBulletController>();
-            bulletCtrl?.InitializeBullet(transform.rotation * Vector3.forward, photonView.Owner);
-
-            
-            if (bullet.TryGetComponent(out Collider bulletCol))
+            var playerColliders = GetComponentsInChildren<Collider>();
+            foreach (var col in playerColliders)
             {
-                
-                var playerColliders = GetComponentsInChildren<Collider>();
-
-                foreach (var col in playerColliders)
-                {
-                    Physics.IgnoreCollision(bulletCol, col);
-                }
+                Physics.IgnoreCollision(bulletCol, col);
             }
-            AudioManager.Instance.Play3D(playerShootingAudio, transform.position);
-            VFXManager.Instance.PlayVFX(bulletFiringEffect, bulletPosition.position);
-
         }
+
+        AudioManager.Instance.Play3D(playerShootingAudio, transform.position);
+        VFXManager.Instance.PlayVFX(bulletFiringEffect, bulletPosition.position);
     }
 
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)

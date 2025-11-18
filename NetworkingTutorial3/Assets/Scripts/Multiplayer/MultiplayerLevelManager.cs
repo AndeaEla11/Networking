@@ -30,10 +30,7 @@ public class MultiplayerLevelManager : MonoBehaviourPunCallbacks
         if (gameOverPopup != null)
             gameOverPopup.SetActive(false);
 
-        PhotonNetwork.Instantiate("Multiplayer Player",
-            new Vector3(0, 1, 0),
-            Quaternion.identity);
-
+        PhotonNetwork.Instantiate("Multiplayer Player", new Vector3(0, 1, 0), Quaternion.identity);
         timer = matchDuration;
         matchEnded = false;
     }

@@ -10,10 +10,21 @@ public class MultiplayerScore : MonoBehaviourPunCallbacks
 {
 
     public GameObject playerScorePrefab;
-    public Transform panel; 
+    public Transform panel;
+
+    public Chat chat;
+    public Transform chatPanel;
 
     Dictionary<int, GameObject> playerScore = new Dictionary<int, GameObject>();
 
+
+    public void ActivatePanel(string panelName)
+    {
+        chatPanel.gameObject.SetActive(false);
+
+        if (panelName == chatPanel.gameObject.name)
+            chatPanel.gameObject.SetActive(true);
+    }
     void Start()
     {
         foreach (var player in PhotonNetwork.PlayerList) 

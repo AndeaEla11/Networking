@@ -4,6 +4,9 @@ using Photon.Pun;
 using Photon.Realtime;
 using UnityEngine.UI;
 using System.Collections.Generic;
+using UnityEditor;
+using PlayFab;
+using PlayFab.ClientModels;
 
 public class MultiplayerLobby : MonoBehaviourPunCallbacks
 {
@@ -70,10 +73,38 @@ public class MultiplayerLobby : MonoBehaviourPunCallbacks
 
     public void LoginButtonClicked()
     {
-        playerName = playerNameInput.text;
-        PhotonNetwork.LocalPlayer.NickName = playerName;
+        if (playerNameInput.text.Trim() != "")
+        {
+            playerName = playerNameInput.text;
+            PhotonNetwork.LocalPlayer.NickName = playerName;
 
-        PhotonNetwork.ConnectUsingSettings();
+            PhotonNetwork.ConnectUsingSettings();
+            UpdatePlayfabUsername(playerName);
+        }
+        else
+        {
+            Debug.Log("Player name is invalid. ");
+        }
+    }
+
+    void UpdatePlayfabUsername(string name)
+    {
+        UpdateUserTitleDisplayNameRequest request = new UpdateUserTitleDisplayNameRequest
+        {
+            DisplayName = name
+        }; 
+
+        PlayFabClientAPI.UpdateUserTitleDisplayName(request, PlayFabUpdateUserTitleDisplayNameResult, PlayFabUpdateUserTitleDisplayNameError); 
+    }
+
+    void PlayFabUpdateUserTitleDisplayNameResult(UpdateUserTitleDisplayNameResult updateUserTitleDisplayNameResult)
+    {
+        Debug.Log("PlayFab - UserTitleDisplayName updated. ");
+    }
+
+    void PlayFabUpdateUserTitleDisplayNameError(PlayFabError updateUserTitleDisplayNameError)
+    {
+        Debug.Log("PlayFab - Error occurred while updating UserTitleDisplayName: " + updateUserTitleDisplayNameError.ErrorMessage); 
     }
 
     public override void OnConnectedToMaster()

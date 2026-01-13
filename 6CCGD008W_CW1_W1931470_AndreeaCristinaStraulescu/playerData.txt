@@ -1,1 +1,1 @@
-{"username":null,"bestScore":0,"bestScoreDate":null,"totalPlayersInGame":0,"roomName":null}
+{"uid":"5f85415f-38f5-4b86-8a58-df260c8c2ee1","username":"Ela","bestScore":3,"bestScoreDate":"13/01/2026 14:31:30","totalPlayersInGame":2,"roomName":"Room0001"}

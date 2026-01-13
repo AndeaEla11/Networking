@@ -59,7 +59,7 @@ public class MultiplayerLevelManager : MonoBehaviourPunCallbacks
         int minutes = Mathf.FloorToInt(timer / 60f);
         int seconds = Mathf.FloorToInt(timer % 60f);
 
-        timerText.text = $"{minutes:00}:{seconds:00}";
+        timerText.text = minutes.ToString("00") + ":" + seconds.ToString("00");
     }
 
     void EndMatchByTime()
@@ -105,9 +105,14 @@ public class MultiplayerLevelManager : MonoBehaviourPunCallbacks
         winnerText.text = winner.NickName;
         gameOverPopup.SetActive(true);
 
-        customMessageText.text = (PhotonNetwork.LocalPlayer == winner)
-            ? "You won!"
-            : "You lost!";
+        if (PhotonNetwork.LocalPlayer == winner)
+        {
+            customMessageText.text = "You won!";
+        }
+        else
+        {
+            customMessageText.text = "You lost!";
+        }
 
         StorePersonalBest();
     }
@@ -125,6 +130,7 @@ public class MultiplayerLevelManager : MonoBehaviourPunCallbacks
             playerData.totalPlayersInGame = PhotonNetwork.CurrentRoom.PlayerCount;
             playerData.roomName = PhotonNetwork.CurrentRoom.Name;
 
+            GameManager.instance.globalLeaderboard.SubmitScore(currentScore);
             GameManager.instance.SavePlayerData();
         }
     }

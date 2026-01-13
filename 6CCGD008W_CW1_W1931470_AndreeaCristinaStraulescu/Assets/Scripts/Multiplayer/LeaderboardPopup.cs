@@ -4,34 +4,42 @@ using UnityEngine;
 
 public class LeaderboardPopup : MonoBehaviour
 {
-    public GameObject scoreHolder;
+    public GameObject mostKillsHolder;
+    public GameObject quickestWinHolder;
+
     public GameObject noScoreText;
     public GameObject leaderboardItem;
 
     private void OnEnable()
     {
-        GameManager.instance.globalLeaderboard.GetLeaderboard();
+        GameManager.instance.globalLeaderboard.GetBothLeaderboards();
     }
 
-    public void UpdateUI(List<PlayerLeaderboardEntry> playerLeaderboardEntries)
+    public void UpdateMostKillsUI(List<PlayerLeaderboardEntry> playerLeaderboardEntries)
     {
-        if (playerLeaderboardEntries.Count >  0)
-        {
-            DestroyChildren(scoreHolder.transform);
+
+            DestroyChildren(mostKillsHolder.transform);
+
             for (int i = 0; i < playerLeaderboardEntries.Count; i++)
             {
-                GameObject newLeaderboardItem = Instantiate(leaderboardItem, Vector3.zero, Quaternion.identity, scoreHolder.transform);
+                GameObject newLeaderboardItem = Instantiate(leaderboardItem, Vector3.zero, Quaternion.identity, mostKillsHolder.transform);
                 newLeaderboardItem.GetComponent<LeaderboardItem>().SetScores(i + 1, playerLeaderboardEntries[i].DisplayName, playerLeaderboardEntries[i].StatValue);
             }
 
-            scoreHolder.SetActive(true);
-            noScoreText.SetActive(false);
-        }
-        else
+            RefreshNoScoreText();
+    }
+
+    public void UpdateQuickestWinUI(List<PlayerLeaderboardEntry> playerLeaderboardEntries)
+    {
+        DestroyChildren(quickestWinHolder.transform);
+
+        for (int i = 0; i < playerLeaderboardEntries.Count; i++)
         {
-            scoreHolder.SetActive(false);
-            noScoreText.SetActive(true);
+            GameObject newLeaderboardIt = Instantiate(leaderboardItem, Vector3.zero, Quaternion.identity, quickestWinHolder.transform);
+            newLeaderboardIt.GetComponent<LeaderboardItem>().SetScores(i + 1, playerLeaderboardEntries[i].DisplayName, playerLeaderboardEntries[i].StatValue);
         }
+
+        RefreshNoScoreText();
     }
 
     void DestroyChildren(Transform parent)
@@ -39,6 +47,21 @@ public class LeaderboardPopup : MonoBehaviour
         foreach (Transform child in parent)
         {
             Destroy(child.gameObject);
+        }
+    }
+
+    void RefreshNoScoreText()
+    {
+        bool hasMostKills = mostKillsHolder.transform.childCount > 0;
+        bool hasQuickestWin = quickestWinHolder.transform.childCount > 0;
+
+        if(!hasMostKills && !hasQuickestWin)
+        {
+            noScoreText.SetActive(true);
+        }
+        else
+        {
+            noScoreText.SetActive(false);
         }
     }
 }

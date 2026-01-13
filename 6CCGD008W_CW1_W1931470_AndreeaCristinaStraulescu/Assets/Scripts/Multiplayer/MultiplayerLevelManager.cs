@@ -108,6 +108,9 @@ public class MultiplayerLevelManager : MonoBehaviourPunCallbacks
         if (PhotonNetwork.LocalPlayer == winner)
         {
             customMessageText.text = "You won!";
+
+            int timeSeconds = Mathf.CeilToInt(matchDuration - timer);
+            GameManager.instance.globalLeaderboard.SubmitQuickestWin(timeSeconds);
         }
         else
         {
@@ -130,7 +133,7 @@ public class MultiplayerLevelManager : MonoBehaviourPunCallbacks
             playerData.totalPlayersInGame = PhotonNetwork.CurrentRoom.PlayerCount;
             playerData.roomName = PhotonNetwork.CurrentRoom.Name;
 
-            GameManager.instance.globalLeaderboard.SubmitScore(currentScore);
+            GameManager.instance.globalLeaderboard.SubmitMostKills(currentScore);
             GameManager.instance.SavePlayerData();
         }
     }

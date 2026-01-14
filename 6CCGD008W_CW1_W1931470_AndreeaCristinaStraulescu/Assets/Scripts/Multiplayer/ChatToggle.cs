@@ -5,6 +5,14 @@ public class ChatToggle : MonoBehaviour
     public GameObject chatPanel;
     public KeyCode toggleKey = KeyCode.T;
 
+    public static bool IsChatOpen { get; private set; }
+
+    void Start()
+    {
+        if (chatPanel != null)
+            IsChatOpen = chatPanel.activeSelf;
+    }
+
     void Update()
     {
         if (Input.GetKeyDown(toggleKey))
@@ -17,6 +25,8 @@ public class ChatToggle : MonoBehaviour
     {
         if (chatPanel == null) return;
 
-        chatPanel.SetActive(!chatPanel.activeSelf);
+        bool newState = !chatPanel.activeSelf;
+        chatPanel.SetActive(newState);
+        IsChatOpen = newState;
     }
 }

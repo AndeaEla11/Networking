@@ -65,6 +65,9 @@ public class Multiplayer : MonoBehaviour, IPunObservable
         if(!photonView.IsMine)
             return;
 
+        if (ChatToggle.IsChatOpen)
+            return;
+
         Move();
         if (Input.GetKey(KeyCode.Space))
             photonView.RPC("Fire", RpcTarget.AllViaServer);
@@ -113,6 +116,17 @@ public class Multiplayer : MonoBehaviour, IPunObservable
             if (bullet.owner != null)
                 bullet.owner.AddScore(1);
 
+            if (bullet.owner != null)
+            {
+                bullet.owner.AddScore(1);
+
+                string killer = bullet.owner.NickName;
+                string victim = photonView.Owner.NickName;
+
+                photonView.RPC(nameof(RPC_ShowKillMessage), RpcTarget.All, killer, victim);
+            }
+
+
             PlayerDied();
         }
     }
@@ -147,6 +161,18 @@ public class Multiplayer : MonoBehaviour, IPunObservable
 
         AudioManager.Instance.Play3D(playerShootingAudio, transform.position);
         VFXManager.Instance.PlayVFX(bulletFiringEffect, bulletPosition.position);
+    }
+
+    [PunRPC]
+    void RPC_ShowKillMessage(string killer, string victim)
+    {
+        KillNotification notification =
+        FindFirstObjectByType<KillNotification>();
+
+        if (notification != null)
+        {
+            notification.Show(killer + " killed " + victim);
+        }
     }
 
     public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
